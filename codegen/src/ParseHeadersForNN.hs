@@ -6,11 +6,14 @@
 
 module ParseHeadersForNN where
 
+import Data.Char (toLower)
 import Data.Void (Void)
-import GHC.Generics
 import Text.Megaparsec as M
 import Text.Megaparsec.Char as M
 import Text.Megaparsec.Char.Lexer as L
+import Data.List.Split (splitOn)
+import Data.Map (Map)
+import ParseFunctionSig (TenType(..),CType(..),Parsable(..),Parameter(..))
 
 {-
 Spec:
@@ -23,38 +26,14 @@ Original parser:
 
 type Parser = Parsec Void String
 
-data TenType
-  = Scalar
-  | Tensor
-  | IndexTensor
-  deriving (Eq, Show)
-
-data CType
-  = CBool
-  | CVoid
-  | CDouble
-  | CInt
-  | CInt64
-  deriving (Eq, Show, Generic, Bounded, Enum)
-
-data Parsable
-  = Ptr Parsable
-  | StateType
-  | GeneratorType
-  | TenType TenType
-  | CType CType
-  deriving (Eq, Show, Generic)
-
-data Parameter  = Parameter
-  { ptype :: Parsable
-  , pname :: String
-  } deriving (Eq, Show)
 
 data Function  = Function
-  { name :: String
+  { fname :: String
+  , cname :: String
   , parameters :: [Parameter]
   } deriving (Eq, Show)
 
+type HNN = Map String Function
 
 sc :: Parser ()
 sc = L.space space1 empty empty
@@ -176,31 +155,35 @@ arg = do
   param = do
     pt <- typ
     pn <- identifier
-    pure $ Parameter pt pn
+    pure $ Parameter pt pn Nothing
 
 -- | parser of a function
 -- >>> parseTest func "TH_API void THNN_(GatedLinear_updateOutput)(    THNNState *state,    THTensor *input,   \n THTensor *output, \n int dim);"
--- Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}
+-- Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}
 -- >>> parseTest func "TH_API void THNN_(GatedLinear_updateOutput)(THNNState *state,   // library's state\n  THTensor *input,THTensor *output,int dim);"
--- Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}
+-- Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}
 func :: Parser Function
 func = do
   _ <- try (manyTill (anySingle <|> newline) $ (string "TH_API void THNN_(" <|> string "THC_API void THNN_("))
   v <- identifier
-  _ <- lexm $ string ")("
-  args <- (sepBy arg (lexm (string ",")))
-  _ <- lexm $ string ");"
-  pure $ Function v args
+  case splitOn "_" v of
+    (fname':cname':[]) -> do
+      _ <- lexm $ string ")("
+      args <- (sepBy arg (lexm (string ",")))
+      _ <- lexm $ string ");"
+      pure $ Function fname' cname' args
+    _ ->  fail $ "function name: " ++ show v ++ " cannot be splited by '_\'"
+
 
 -- | parser of a function
 -- >>> parseTest functions "TH_API void THNN_(GatedLinear_updateOutput)(THNNState *state,THTensor *input,THTensor *output,int dim);"
--- [Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}]
+-- [Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}]
 -- >>> parseTest functions "#define FOO 1\nTH_API void THNN_(GatedLinear_updateOutput)(THNNState *state,THTensor *input,THTensor *output,int dim);"
--- [Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}]
+-- [Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}]
 -- >>> parseTest functions "TH_API void THNN_(GatedLinear_updateOutput)(THNNState *state,THTensor *input,THTensor *output,int dim);\n"
--- [Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}]
+-- [Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}]
 -- >>> parseTest functions "#define FOO 1\n\n#define BAR 1\n\nTH_API void THNN_(GatedLinear_updateOutput)(THNNState *state,THTensor *input,THTensor *output,int dim);\n\n"
--- [Function {name = "GatedLinear_updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state"},Parameter {ptype = Ptr (TenType Tensor), pname = "input"},Parameter {ptype = Ptr (TenType Tensor), pname = "output"},Parameter {ptype = CType CInt, pname = "dim"}]}]
+-- [Function {fname = "GatedLinear", cname = "updateOutput", parameters = [Parameter {ptype = Ptr StateType, pname = "state", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "input", val = Nothing},Parameter {ptype = Ptr (TenType Tensor), pname = "output", val = Nothing},Parameter {ptype = CType CInt, pname = "dim", val = Nothing}]}]
 functions :: Parser [Function]
 functions =  do
   x <- optional func
@@ -211,3 +194,40 @@ functions =  do
         Nothing -> pure [x']
         Just xs' -> pure (x':xs')
     Nothing -> pure []
+
+thnnArgs :: Function -> [Parameter]
+thnnArgs fn = thnnArgs' $ parameters fn
+
+thnnArgs' :: [Parameter] -> [Parameter]
+thnnArgs' params =
+  flip map params $ \p -> p{pname = rename $ camelToSnake (pname p)}
+  where
+    camelToSnake [] = []
+    camelToSnake (x:xs) =
+      if x `elem` ['A'..'Z']
+      then '_':toLower(x):camelToSnake xs
+      else x:camelToSnake xs
+    rename "input" = "self"
+    rename "weights" = "weight"
+    rename "train" = "training"
+    rename "val" = "value"
+    rename "lambda" = "lambd"
+    rename "negval" = "negative_slope"
+    rename x = x
+
+outputArgs :: String -> [Parameter] -> [Parameter]
+outputArgs cname' params =
+  map (\p' -> p'{ptype = typeConv (ptype p')}) $
+  flip filter params $ \p ->
+    pname p == "output" && cname' == "updateOutput" ||
+    pname p `elem` ["grad_input", "grad_weight", "grad_bias", "grad_grid"] ||
+    pname p == "indices" && cname' == "updateOutput"
+  where
+    typeConv (Ptr (TenType Tensor)) = TenType Tensor
+    typeConv a = a
+
+-- | see remove_unused_args(args, thnn_args) of nn_parse.py
+-- Returns the subset of args whose name appears in thnn_args
+removeUnusedArgs :: [Parameter] -> [Parameter] -> [Parameter]
+removeUnusedArgs args thnn_args =
+  flip filter args $ \arg' -> pname arg' `elem` map pname thnn_args

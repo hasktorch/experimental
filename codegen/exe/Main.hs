@@ -16,6 +16,8 @@ import qualified RenderNN as RNN
 data Options = Options
     { specFileNF :: !String
     , specFileNN :: !String
+    , specFileHNN :: !String
+    , specFileHCUNN :: !String
     , outputDir :: !String
     } deriving Show
 
@@ -48,6 +50,20 @@ programOptions =
           <> O.help "Specification file of nn"
           )
     <*> O.strOption
+          (  O.long "THNN.h"
+          <> O.short 't'
+          <> O.metavar "FILENAME"
+          <> O.value "spec/THNN.h"
+          <> O.help "Specification file of nn"
+          )
+    <*> O.strOption
+          (  O.long "THCUNN.h"
+          <> O.short 't'
+          <> O.metavar "FILENAME"
+          <> O.value "spec/THCUNN.h"
+          <> O.help "Specification file of nn"
+          )
+    <*> O.strOption
           (  O.long "output-dir"
           <> O.short 'o'
           <> O.metavar "DIRNAME"
@@ -58,6 +74,6 @@ programOptions =
 main = do
   opts <- O.execParser optsParser
   RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
-  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
+  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts) (specFileHNN opts)
   pure ()
 

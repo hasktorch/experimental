@@ -5,7 +5,7 @@ module Main where
 
 import Control.Exception.Safe (throwString, throw)
 import Data.Proxy
-import Text.Megaparsec (parse, errorBundlePretty)
+import Text.Megaparsec (parse)
 import ParseNativeFunctions (NativeFunction, NativeFunction')
 import ParseNN (NN, NN')
 import ParseDerivatives (Derivative)
@@ -143,10 +143,10 @@ nnSpec = do
 
   it "parses the `_thnn_binary_cross_entropy` function without inplace and buffer" $ do
     fs <- parseWith (Proxy @ NN')
-
-    case fmap RNN.mkBackwardAndForward $ mhead $ filter (("_thnn_binary_cross_entropy" ==) . name . NN.func') fs of
-      Nothing -> fail "_thnn_binary_cross_entropy function not found!"
-      Just nf -> do
+    thnn <- RNN.decodeThnn thnnPath
+    case genFunc "_thnn_binary_cross_entropy" thnn fs of
+      Left err -> fail err
+      Right nf -> do
         map (\v' -> Right (toTuple v')) nf `shouldBe`
           map (\s -> fmap toTuple $ parseFuncSig s)
           [ "_thnn_binary_cross_entropy_forward"
@@ -165,8 +165,8 @@ nnSpec = do
 
   it "parses the `_thnn_multilabel_margin_loss` function with buffer" $ do
     fs <- parseWith (Proxy @ NN')
-
-    case fmap RNN.mkBackwardAndForward $ mhead $ filter (("_thnn_multilabel_margin_loss" ==) . name . NN.func') fs of
+    thnn <- RNN.decodeThnn thnnPath
+    case genFunc "_thnn_multilabel_margin_loss" thnn fs of
       Nothing -> fail "_thnn_multilabel_margin_loss function not found!"
       Just nf -> do
         map (\v' -> Right (toTuple v')) nf `shouldBe`
@@ -184,11 +184,10 @@ nnSpec = do
             <> "(Tensor grad_input, Tensor grad_output, Tensor self, LongTensor target, int64_t reduction=Reduction::Mean, Tensor is_target)"
             <> " -> Tensor"
           ]
-{-
   it "parses the `_thnn_elu` function with inplace" $ do
     fs <- parseWith (Proxy @ NN')
-
-    case fmap RNN.mkBackwardAndForward $ mhead $ filter (("_thnn_elu" ==) . name . NN.func') fs of
+    thnn <- RNN.decodeThnn thnnPath
+    case genFunc "_thnn_elu" thnn fs of
       Nothing -> fail "_thnn_elu function not found!"
       Just nf -> do
         map (\v' -> Right (toTuple v')) nf `shouldBe`
@@ -206,11 +205,31 @@ nnSpec = do
             <> "(Tensor grad_input, Tensor grad_output, Scalar alpha=1, Scalar scale=1, Scalar input_scale=1, Tensor output)"
             <> " -> Tensor"
           ]
--}
+  it "parses the `_thnn_softplus` function with inplace" $ do
+    fs <- parseWith (Proxy @ NN')
+    thnn <- RNN.decodeThnn thnnPath
+    case genFunc "_thnn_softplus" thnn fs of
+      Nothing -> fail "_thnn_softplus function not found!"
+      Just nf -> do
+        map (\v' -> Right (toTuple v')) nf `shouldBe`
+          map (\s -> fmap toTuple $ parseFuncSig s)
+          [ "_thnn_softplus_forward"
+            <> "(Tensor self, Scalar beta=1, Scalar threshold=20)"
+            <> " -> Tensor"
+          , "_thnn_softplus_forward_out"
+            <> "(Tensor output, Tensor self, Scalar beta=1, Scalar threshold=20)"
+            <> " -> Tensor"
+          , "_thnn_softplus_backward"
+            <> "(Tensor grad_output, Tensor self, Scalar beta=1, Scalar threshold=20, Tensor output)"
+            <> " -> Tensor"
+          , "_thnn_softplus_backward_out"
+            <> "(Tensor grad_input, Tensor grad_output, Tensor self, Scalar beta=1, Scalar threshold=20, Tensor output)"
+            <> " -> Tensor"
+          ]
   it "parses the `_thnn_rrelu_with_noise` function:generator argument is dropped.(see pytorch/aten/src/ATen/function_wrapper.py)" $ do
     fs <- parseWith (Proxy @ NN')
-
-    case fmap RNN.mkBackwardAndForward $ mhead $ filter (("_thnn_rrelu_with_noise" ==) . name . NN.func') fs of
+    thnn <- RNN.decodeThnn thnnPath
+    case genFunc "_thnn_rrelu_with_noise" thnn fs of
       Nothing -> fail "_thnn_rrelu_with_noise function not found!"
       Just nf -> do
         map (\v' -> Right (toTuple v')) nf `shouldBe`
@@ -230,10 +249,14 @@ nnSpec = do
           ]
 
  where
-  mhead :: [a] -> Maybe a
-  mhead = \case
-    [] -> Nothing
-    a:_ -> Just a
+  genFunc func_name thnn fs  = do
+    case filter ((func_name ==) . name . NN.func') fs of
+      [] -> fail $ func_name <> " function not found!"
+      nf:_ -> do
+        case RNN.mergeNNAndThnn thnn [nf] of
+          Left err -> fail $ err
+          Right [v'] -> pure $ RNN.mkBackwardAndForward v'
+          Right v' -> fail $ "mergeNNAndThnn is something wrong.:" <> show v'
   toTuple f = (parameters f, retType f)
   parseWith :: forall funtype . Y.FromJSON funtype => Proxy funtype -> IO [funtype]
   parseWith _ = do
@@ -257,10 +280,6 @@ thnnSpec = do
     fs <- parseWith thcunnPath
     (length fs) `shouldBe` 149
  where
-  mhead :: [a] -> Maybe a
-  mhead = \case
-    [] -> Nothing
-    a:_ -> Just a
   parseWith :: FilePath -> IO [HNN.Function]
   parseWith file = do
     readFile file >>= \f -> do

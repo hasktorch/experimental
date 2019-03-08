@@ -54,6 +54,7 @@ data Parsable
     | TenType TenType
     | DeviceType
     | GeneratorType
+    | StateType
     | StorageType
     | CType CType
     | STLType STLType

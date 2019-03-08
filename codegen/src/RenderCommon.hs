@@ -67,6 +67,7 @@ parsableToCppType parsable =
     TenType t -> tenTypeToCppType t
     DeviceType -> "at::Device"
     GeneratorType -> "at::Generator"
+    StateType -> "THHState"
     StorageType -> "at::Storage"
     CType ct -> ctypeToCppType ct
     STLType t -> stltypeToCppType t
@@ -120,6 +121,7 @@ parsableToHsType parsable =
     TenType t -> tenTypeToHsType t
     DeviceType -> "Device"
     GeneratorType -> "Generator"
+    StateType -> "THHState"
     StorageType -> "Storage"
     CType ct -> ctypeToHsType ct
     STLType t -> stltypeToHsType t
@@ -171,9 +173,10 @@ parsableToInitial parsable =
   case parsable of
     Ptr _ -> "p"
     TenType t -> tenTypeToInitial t
-    DeviceType -> "device"
-    GeneratorType -> "generator"
-    StorageType -> "storage"
+    DeviceType -> "d"
+    GeneratorType -> "g"
+    StateType -> "S"
+    StorageType -> "s"
     CType ct -> ctypeToInitial ct
     STLType t -> stltypeToInitial t
     CppString -> "s"
@@ -199,6 +202,7 @@ retToCppType parsable =
     TenType t -> tenTypeToCppType t
     DeviceType -> "Device"
     GeneratorType -> "Generator"
+    StateType -> "State"
     StorageType -> "Storage"
     CType ct -> ctypeToCppType ct
     STLType t -> stltypeToCppType t

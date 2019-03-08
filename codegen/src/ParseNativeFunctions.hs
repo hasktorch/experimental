@@ -6,7 +6,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 module ParseNativeFunctions where
 
-import Data.Char (toUpper)
 import GHC.Generics
 import Data.Yaml
 import Data.Aeson ((.:!))
@@ -69,6 +68,7 @@ instance FromJSON NativeFunction
 instance FromJSON Dispatch where
   parseJSON (Object v) =  Dispatch <$> v .:! "CPU" <*> v .:! "CUDA" <*> v .:! "SparseCPU" <*> v .:! "SparseCUDA"
   parseJSON (String v) =  pure $ Dispatch (Just (cs v)) Nothing Nothing Nothing
+  parseJSON _ = fail $ "Can not parse this dispatch-field."
 
 instance ToJSON Dispatch
 

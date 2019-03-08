@@ -34,6 +34,9 @@ library
     , text
     , string-conversions
     , directory
+    , split
+    , containers
+    , safe-exceptions
   extra-libraries: stdc++
   ghc-options:     -Wall
 
