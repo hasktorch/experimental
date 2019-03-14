@@ -9,6 +9,7 @@ jobs:
     steps:
       - run: echo $LD_LIBRARY_PATH
       - run: apt update -qq && apt install -y cmake wget unzip git libtinfo-dev python3 python3-yaml
+      - run: update-alternatives --install /usr/bin/python python /usr/bin/python3 1
       - checkout
       - run: git submodule init && git submodule update
       - run: wget -qO- https://get.haskellstack.org/ | sh
