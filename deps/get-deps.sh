@@ -23,7 +23,7 @@ case "$(uname)" in
     if [ -z "$USE_BINARY_FOR_CI" ] ; then
       wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-shared-with-deps-latest.zip
     else
-      git clone git@github.com:hasktorch/libtorch-binary-for-ci.git
+      wget https://github.com/hasktorch/libtorch-binary-for-ci/releases/download/1.0.0.dev20190315/libtorch-shared-with-deps-latest.zip
       cp libtorch-binary-for-ci/libtorch-shared-with-deps-latest.zip .
     fi
     unzip libtorch-shared-with-deps-latest.zip

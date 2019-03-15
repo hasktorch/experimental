@@ -6,16 +6,17 @@ module Main where
 
 import qualified Options.Applicative as O
 import qualified ParseNativeFunctions as NF
-import qualified ParseDerivatives as D
 import qualified ParseFunctionSig as F
 import qualified RenderNativeFunctions as RNF
 import qualified RenderNN as RNN
+import qualified RenderDeclarations as RD
 
 {- CLI options -}
 
 data Options = Options
     { specFileNF :: !String
     , specFileNN :: !String
+    , specFileDL :: !String
     , outputDir :: !String
     } deriving Show
 
@@ -48,6 +49,13 @@ programOptions =
           <> O.help "Specification file of nn"
           )
     <*> O.strOption
+          (  O.long "declaration-spec"
+          <> O.short 'd'
+          <> O.metavar "FILENAME"
+          <> O.value "spec/Declarations.yaml"
+          <> O.help "Specification file of Declarations"
+          )
+    <*> O.strOption
           (  O.long "output-dir"
           <> O.short 'o'
           <> O.metavar "DIRNAME"
@@ -59,5 +67,6 @@ main = do
   opts <- O.execParser optsParser
   RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
   RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
+  RD.decodeAndCodeGen (outputDir opts) (specFileDL opts)
   pure ()
 

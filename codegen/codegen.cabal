@@ -19,6 +19,7 @@ library
     ParseDerivatives
     ParseFunctionSig
     ParseHeadersForNN
+    RenderDeclarations
     RenderNativeFunctions
     RenderNN
     RenderCommon
@@ -35,6 +36,7 @@ library
     , text
     , string-conversions
     , directory
+    , fficxx
   extra-libraries: stdc++
   ghc-options:     -Wall
 
