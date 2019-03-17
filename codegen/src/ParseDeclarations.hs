@@ -8,6 +8,7 @@ module ParseDeclarations where
 import Data.Char (toUpper)
 import GHC.Generics
 import Data.Yaml
+import Data.Aeson ((.:!))
 
 import qualified Data.Yaml as Y
 import Data.Aeson.Types (defaultOptions, fieldLabelModifier, genericParseJSON)
@@ -52,14 +53,20 @@ data Type = Type
   { name' :: String
   , dynamic_type' :: S.Parsable
   , type' :: String
-} deriving (Show, Generic)
+} deriving (Show, Eq, Generic)
+
+type2type :: Type -> S.Parsable
+type2type typ =
+  case dynamic_type' typ of
+    S.TenType S.Scalar -> if type' typ == "Tensor" then S.TenType S.Tensor else S.TenType S.Scalar
+    a -> a
 
 data Mode
   = TH
   | THC
   | NN
   | Native
-  deriving (Show, Generic)
+  deriving (Show, Eq, Generic)
 
 data Declaration = Declaration
   { name :: String
@@ -79,7 +86,7 @@ data Declaration = Declaration
   , device_guard :: Maybe Bool
   , with_gil :: Maybe Bool
   , deprecated :: Maybe Bool
-} deriving (Show, Generic)
+} deriving (Show, Eq, Generic)
 
 
 instance FromJSON Type where
@@ -90,7 +97,7 @@ instance FromJSON Mode where
     parseJSON (String "THC") = pure THC
     parseJSON (String "NN") = pure NN
     parseJSON (String "native") = pure Native
-    parseJSON v = fail $ show v <> " is not string for mode."
+    parseJSON v = fail $ show v <> " is not a string of Mode."
 
 instance FromJSON Declaration
 

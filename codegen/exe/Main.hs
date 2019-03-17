@@ -65,8 +65,8 @@ programOptions =
 
 main = do
   opts <- O.execParser optsParser
-  RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
-  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
+--  RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
+--  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
   RD.decodeAndCodeGen (outputDir opts) (specFileDL opts)
   pure ()
 

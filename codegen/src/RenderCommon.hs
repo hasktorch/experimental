@@ -108,7 +108,7 @@ ctypeToHsType :: CType -> Text
 ctypeToHsType ct =
   case ct of
     CBool -> "CBool"
-    CVoid -> ""
+    CVoid -> "()"
     CFloat -> "CFloat"
     CDouble -> "CDouble"
     CInt -> "CInt"
