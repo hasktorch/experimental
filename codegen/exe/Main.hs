@@ -15,9 +15,7 @@ import qualified RenderTensor as RT
 {- CLI options -}
 
 data Options = Options
-    { specFileNF :: !String
-    , specFileNN :: !String
-    , specFileDL :: !String
+    { specFileDL :: !String
     , outputDir :: !String
     } deriving Show
 
@@ -36,20 +34,6 @@ programOptions :: O.Parser Options
 programOptions =
   Options
     <$> O.strOption
-          (  O.long "nf-spec"
-          <> O.short 'f'
-          <> O.metavar "FILENAME"
-          <> O.value "spec/native_functions_modified.yaml"
-          <> O.help "Specification file of native-functions"
-          )
-    <*> O.strOption
-          (  O.long "nn-spec"
-          <> O.short 'n'
-          <> O.metavar "FILENAME"
-          <> O.value "spec/nn.yaml"
-          <> O.help "Specification file of nn"
-          )
-    <*> O.strOption
           (  O.long "declaration-spec"
           <> O.short 'd'
           <> O.metavar "FILENAME"
@@ -66,8 +50,6 @@ programOptions =
 
 main = do
   opts <- O.execParser optsParser
---  RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
---  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
   RD.decodeAndCodeGen (outputDir opts) (specFileDL opts)
   RT.tensorBuilder
   pure ()

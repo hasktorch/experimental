@@ -11,6 +11,7 @@ import qualified Data.Yaml as Y
 import Text.Shakespeare.Text (st)
 import Data.Text (Text)
 import qualified Data.Text.IO as T
+import System.Directory (createDirectoryIfMissing)
 
 import qualified ParseDeclarations as D
 import ParseFunctionSig as P
@@ -37,6 +38,7 @@ decodeAndCodeGen basedir fileName = do
   case funcs of
     Left err' -> print err'
     Right fns -> do
+      createDirectoryIfMissing True (basedir <> "/Aten")
       T.writeFile (basedir <> "/Aten/NN.hs") $
         template "Aten.NN" (renderFunctions False "at::" (filter (\a -> D.mode a == D.NN) fns))
       T.writeFile (basedir <> "/Aten/TH.hs") $
