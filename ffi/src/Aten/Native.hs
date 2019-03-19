@@ -1010,7 +1010,7 @@ _batch_norm_impl_index_tttttbddb
   -> CDouble
   -> CDouble
   -> CBool
-  -> IO (Ptr (Tensor,Tensor,Tensor,Int64))
+  -> IO (Ptr (Tensor,Tensor,Tensor,CLong))
 _batch_norm_impl_index_tttttbddb _input _weight _bias _running_mean _running_var _training _momentum _eps _cudnn_enabled =
   [C.block| std::tuple<at::Tensor,at::Tensor,at::Tensor,int64_t>* { return new std::tuple<at::Tensor,at::Tensor,at::Tensor,int64_t>(at::_batch_norm_impl_index(
     *$(at::Tensor* _input)
