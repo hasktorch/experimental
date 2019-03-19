@@ -10,6 +10,7 @@ import qualified ParseFunctionSig as F
 import qualified RenderNativeFunctions as RNF
 import qualified RenderNN as RNN
 import qualified RenderDeclarations as RD
+import qualified RenderTensor as RT
 
 {- CLI options -}
 
@@ -68,5 +69,6 @@ main = do
 --  RNF.decodeAndCodeGen (outputDir opts) (specFileNF opts)
 --  RNN.decodeAndCodeGen (outputDir opts) (specFileNN opts)
   RD.decodeAndCodeGen (outputDir opts) (specFileDL opts)
+  RT.tensorBuilder
   pure ()
 
