@@ -252,6 +252,14 @@ _cudnn_init_dropout_state_dblo _dropout _train _dropout_seed _options =
   , *$(at::TensorOptions* _options)));
   }|]
 
+_debug_has_internal_overlap_t
+  :: Ptr Tensor
+  -> IO (Int64)
+_debug_has_internal_overlap_t _self =
+  [C.block| int64_t { return (at::_debug_has_internal_overlap(
+    *$(at::Tensor* _self)));
+  }|]
+
 _fused_dropout_tdp
   :: Ptr Tensor
   -> CDouble
@@ -1010,7 +1018,7 @@ _batch_norm_impl_index_tttttbddb
   -> CDouble
   -> CDouble
   -> CBool
-  -> IO (Ptr (Tensor,Tensor,Tensor,CLong))
+  -> IO (Ptr (Tensor,Tensor,Tensor,Int64))
 _batch_norm_impl_index_tttttbddb _input _weight _bias _running_mean _running_var _training _momentum _eps _cudnn_enabled =
   [C.block| std::tuple<at::Tensor,at::Tensor,at::Tensor,int64_t>* { return new std::tuple<at::Tensor,at::Tensor,at::Tensor,int64_t>(at::_batch_norm_impl_index(
     *$(at::Tensor* _input)
@@ -1767,10 +1775,10 @@ cudnn_affine_grid_generator_tllll
   -> Int64
   -> Int64
   -> IO (Ptr Tensor)
-cudnn_affine_grid_generator_tllll _theta _nn _C _H _W =
+cudnn_affine_grid_generator_tllll _theta _N _C _H _W =
   [C.block| at::Tensor* { return new at::Tensor(at::cudnn_affine_grid_generator(
     *$(at::Tensor* _theta)
-  , $(int64_t _nn)
+  , $(int64_t _N)
   , $(int64_t _C)
   , $(int64_t _H)
   , $(int64_t _W)));
@@ -1783,10 +1791,10 @@ cudnn_affine_grid_generator_backward_tllll
   -> Int64
   -> Int64
   -> IO (Ptr Tensor)
-cudnn_affine_grid_generator_backward_tllll _grad _nn _C _H _W =
+cudnn_affine_grid_generator_backward_tllll _grad _N _C _H _W =
   [C.block| at::Tensor* { return new at::Tensor(at::cudnn_affine_grid_generator_backward(
     *$(at::Tensor* _grad)
-  , $(int64_t _nn)
+  , $(int64_t _N)
   , $(int64_t _C)
   , $(int64_t _H)
   , $(int64_t _W)));
@@ -2706,9 +2714,9 @@ eye_lo
   :: Int64
   -> Ptr TensorOptions
   -> IO (Ptr Tensor)
-eye_lo _nn _options =
+eye_lo _n _options =
   [C.block| at::Tensor* { return new at::Tensor(at::eye(
-    $(int64_t _nn)
+    $(int64_t _n)
   , *$(at::TensorOptions* _options)));
   }|]
 
@@ -2717,9 +2725,9 @@ eye_llo
   -> Int64
   -> Ptr TensorOptions
   -> IO (Ptr Tensor)
-eye_llo _nn _m _options =
+eye_llo _n _m _options =
   [C.block| at::Tensor* { return new at::Tensor(at::eye(
-    $(int64_t _nn)
+    $(int64_t _n)
   , $(int64_t _m)
   , *$(at::TensorOptions* _options)));
   }|]
@@ -2728,10 +2736,10 @@ eye_out_tl
   :: Ptr Tensor
   -> Int64
   -> IO (Ptr Tensor)
-eye_out_tl _out _nn =
+eye_out_tl _out _n =
   [C.block| at::Tensor* { return new at::Tensor(at::eye_out(
     *$(at::Tensor* _out)
-  , $(int64_t _nn)));
+  , $(int64_t _n)));
   }|]
 
 eye_out_tll
@@ -2739,10 +2747,10 @@ eye_out_tll
   -> Int64
   -> Int64
   -> IO (Ptr Tensor)
-eye_out_tll _out _nn _m =
+eye_out_tll _out _n _m =
   [C.block| at::Tensor* { return new at::Tensor(at::eye_out(
     *$(at::Tensor* _out)
-  , $(int64_t _nn)
+  , $(int64_t _n)
   , $(int64_t _m)));
   }|]
 
@@ -3032,40 +3040,6 @@ ger_out_ttt _out _self _vec2 =
     *$(at::Tensor* _out)
   , *$(at::Tensor* _self)
   , *$(at::Tensor* _vec2)));
-  }|]
-
-gesv_tt
-  :: Ptr Tensor
-  -> Ptr Tensor
-  -> IO (Ptr (Tensor,Tensor))
-gesv_tt _self _A =
-  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::gesv(
-    *$(at::Tensor* _self)
-  , *$(at::Tensor* _A)));
-  }|]
-
-gesv_out_tttt
-  :: Ptr Tensor
-  -> Ptr Tensor
-  -> Ptr Tensor
-  -> Ptr Tensor
-  -> IO (Ptr (Tensor,Tensor))
-gesv_out_tttt _solution _lu _self _A =
-  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::gesv_out(
-    *$(at::Tensor* _solution)
-  , *$(at::Tensor* _lu)
-  , *$(at::Tensor* _self)
-  , *$(at::Tensor* _A)));
-  }|]
-
-_gesv_helper_tt
-  :: Ptr Tensor
-  -> Ptr Tensor
-  -> IO (Ptr (Tensor,Tensor))
-_gesv_helper_tt _self _A =
-  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::_gesv_helper(
-    *$(at::Tensor* _self)
-  , *$(at::Tensor* _A)));
   }|]
 
 group_norm_tlttdb
@@ -3479,7 +3453,7 @@ fbgemm_linear_int8_weight_ttttsst _input _weight _packed _col_offsets _weight_sc
 
 fbgemm_linear_quantize_weight_t
   :: Ptr Tensor
-  -> IO (Ptr (Tensor,Tensor,CDouble,CLong))
+  -> IO (Ptr (Tensor,Tensor,CDouble,Int64))
 fbgemm_linear_quantize_weight_t _input =
   [C.block| std::tuple<at::Tensor,at::Tensor,double,int64_t>* { return new std::tuple<at::Tensor,at::Tensor,double,int64_t>(at::fbgemm_linear_quantize_weight(
     *$(at::Tensor* _input)));
@@ -3490,11 +3464,11 @@ fbgemm_pack_quantized_matrix_tll
   -> Int64
   -> Int64
   -> IO (Ptr Tensor)
-fbgemm_pack_quantized_matrix_tll _input _K _nn =
+fbgemm_pack_quantized_matrix_tll _input _K _N =
   [C.block| at::Tensor* { return new at::Tensor(at::fbgemm_pack_quantized_matrix(
     *$(at::Tensor* _input)
   , $(int64_t _K)
-  , $(int64_t _nn)));
+  , $(int64_t _N)));
   }|]
 
 fbgemm_is_cpu_supported_
@@ -3810,10 +3784,10 @@ matrix_power_tl
   :: Ptr Tensor
   -> Int64
   -> IO (Ptr Tensor)
-matrix_power_tl _self _nn =
+matrix_power_tl _self _n =
   [C.block| at::Tensor* { return new at::Tensor(at::matrix_power(
     *$(at::Tensor* _self)
-  , $(int64_t _nn)));
+  , $(int64_t _n)));
   }|]
 
 max_tlb
@@ -5325,9 +5299,9 @@ randperm_lo
   :: Int64
   -> Ptr TensorOptions
   -> IO (Ptr Tensor)
-randperm_lo _nn _options =
+randperm_lo _n _options =
   [C.block| at::Tensor* { return new at::Tensor(at::randperm(
-    $(int64_t _nn)
+    $(int64_t _n)
   , *$(at::TensorOptions* _options)));
   }|]
 
@@ -5336,9 +5310,9 @@ randperm_lpo
   -> Ptr Generator
   -> Ptr TensorOptions
   -> IO (Ptr Tensor)
-randperm_lpo _nn _generator _options =
+randperm_lpo _n _generator _options =
   [C.block| at::Tensor* { return new at::Tensor(at::randperm(
-    $(int64_t _nn)
+    $(int64_t _n)
   , $(at::Generator * _generator)
   , *$(at::TensorOptions* _options)));
   }|]
@@ -5347,10 +5321,10 @@ randperm_out_tl
   :: Ptr Tensor
   -> Int64
   -> IO (Ptr Tensor)
-randperm_out_tl _out _nn =
+randperm_out_tl _out _n =
   [C.block| at::Tensor* { return new at::Tensor(at::randperm_out(
     *$(at::Tensor* _out)
-  , $(int64_t _nn)));
+  , $(int64_t _n)));
   }|]
 
 randperm_out_tlp
@@ -5358,10 +5332,10 @@ randperm_out_tlp
   -> Int64
   -> Ptr Generator
   -> IO (Ptr Tensor)
-randperm_out_tlp _out _nn _generator =
+randperm_out_tlp _out _n _generator =
   [C.block| at::Tensor* { return new at::Tensor(at::randperm_out(
     *$(at::Tensor* _out)
-  , $(int64_t _nn)
+  , $(int64_t _n)
   , $(at::Generator * _generator)));
   }|]
 
@@ -8981,6 +8955,40 @@ _cholesky_solve_helper_ttb _self _A _upper =
   , $(bool _upper)));
   }|]
 
+solve_tt
+  :: Ptr Tensor
+  -> Ptr Tensor
+  -> IO (Ptr (Tensor,Tensor))
+solve_tt _self _A =
+  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::solve(
+    *$(at::Tensor* _self)
+  , *$(at::Tensor* _A)));
+  }|]
+
+solve_out_tttt
+  :: Ptr Tensor
+  -> Ptr Tensor
+  -> Ptr Tensor
+  -> Ptr Tensor
+  -> IO (Ptr (Tensor,Tensor))
+solve_out_tttt _solution _lu _self _A =
+  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::solve_out(
+    *$(at::Tensor* _solution)
+  , *$(at::Tensor* _lu)
+  , *$(at::Tensor* _self)
+  , *$(at::Tensor* _A)));
+  }|]
+
+_solve_helper_tt
+  :: Ptr Tensor
+  -> Ptr Tensor
+  -> IO (Ptr (Tensor,Tensor))
+_solve_helper_tt _self _A =
+  [C.block| std::tuple<at::Tensor,at::Tensor>* { return new std::tuple<at::Tensor,at::Tensor>(at::_solve_helper(
+    *$(at::Tensor* _self)
+  , *$(at::Tensor* _A)));
+  }|]
+
 potri_out_ttb
   :: Ptr Tensor
   -> Ptr Tensor
@@ -9284,10 +9292,10 @@ polygamma_out_tlt
   -> Int64
   -> Ptr Tensor
   -> IO (Ptr Tensor)
-polygamma_out_tlt _out _nn _self =
+polygamma_out_tlt _out _n _self =
   [C.block| at::Tensor* { return new at::Tensor(at::polygamma_out(
     *$(at::Tensor* _out)
-  , $(int64_t _nn)
+  , $(int64_t _n)
   , *$(at::Tensor* _self)));
   }|]
 
@@ -9295,9 +9303,9 @@ polygamma_lt
   :: Int64
   -> Ptr Tensor
   -> IO (Ptr Tensor)
-polygamma_lt _nn _self =
+polygamma_lt _n _self =
   [C.block| at::Tensor* { return new at::Tensor(at::polygamma(
-    $(int64_t _nn)
+    $(int64_t _n)
   , *$(at::Tensor* _self)));
   }|]
 

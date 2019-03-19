@@ -174,9 +174,9 @@ parsableToInitial parsable =
   case parsable of
     Ptr _ -> "p"
     TenType t -> tenTypeToInitial t
-    DeviceType -> "device"
-    GeneratorType -> "generator"
-    StorageType -> "storage"
+    DeviceType -> "D"
+    GeneratorType -> "G"
+    StorageType -> "S"
     CType ct -> ctypeToInitial ct
     STLType t -> stltypeToInitial t
     CppString -> "s"

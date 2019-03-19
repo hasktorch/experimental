@@ -32,24 +32,24 @@ C.context $ C.cppCtx <> mempty { C.ctxTypesTable = typeTable }
 C.include "<ATen/ATen.h>"
 
 
-_th_set__tstorage
+_th_set__tS
   :: Ptr Tensor
   -> Ptr Storage
   -> IO (Ptr Tensor)
-_th_set__tstorage _self _source =
+_th_set__tS _self _source =
   [C.block| at::Tensor* { return new at::Tensor(at::_th_set_(
     *$(at::Tensor* _self)
   , *$(at::Storage* _source)));
   }|]
 
-_th_set__tstoragelll
+_th_set__tSlll
   :: Ptr Tensor
   -> Ptr Storage
   -> Int64
   -> Ptr IntList
   -> Ptr IntList
   -> IO (Ptr Tensor)
-_th_set__tstoragelll _self _source _storage_offset _size _stride =
+_th_set__tSlll _self _source _storage_offset _size _stride =
   [C.block| at::Tensor* { return new at::Tensor(at::_th_set_(
     *$(at::Tensor* _self)
   , *$(at::Storage* _source)
@@ -1549,10 +1549,10 @@ _th_polygamma_out_tlt
   -> Int64
   -> Ptr Tensor
   -> IO (Ptr Tensor)
-_th_polygamma_out_tlt _result _nn _self =
+_th_polygamma_out_tlt _result _n _self =
   [C.block| at::Tensor* { return new at::Tensor(at::_th_polygamma_out(
     *$(at::Tensor* _result)
-  , $(int64_t _nn)
+  , $(int64_t _n)
   , *$(at::Tensor* _self)));
   }|]
 
@@ -1560,9 +1560,9 @@ _th_polygamma_lt
   :: Int64
   -> Ptr Tensor
   -> IO (Ptr Tensor)
-_th_polygamma_lt _nn _self =
+_th_polygamma_lt _n _self =
   [C.block| at::Tensor* { return new at::Tensor(at::_th_polygamma(
-    $(int64_t _nn)
+    $(int64_t _n)
   , *$(at::Tensor* _self)));
   }|]
 
@@ -1570,10 +1570,10 @@ _th_polygamma__tl
   :: Ptr Tensor
   -> Int64
   -> IO (Ptr Tensor)
-_th_polygamma__tl _self _nn =
+_th_polygamma__tl _self _n =
   [C.block| at::Tensor* { return new at::Tensor(at::_th_polygamma_(
     *$(at::Tensor* _self)
-  , $(int64_t _nn)));
+  , $(int64_t _n)));
   }|]
 
 _th_exp_out_tt
