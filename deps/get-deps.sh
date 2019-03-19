@@ -24,7 +24,6 @@ case "$(uname)" in
       wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-shared-with-deps-latest.zip
     else
       wget https://github.com/hasktorch/libtorch-binary-for-ci/releases/download/1.0.0.dev20190319/libtorch-shared-with-deps-latest.zip
-      cp libtorch-binary-for-ci/libtorch-shared-with-deps-latest.zip .
     fi
     unzip libtorch-shared-with-deps-latest.zip
     rm libtorch-shared-with-deps-latest.zip
