@@ -13,15 +13,15 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-    ParseNativeFunctions
-    ParseNN
+--    ParseNativeFunctions
+--    ParseNN
     ParseDeclarations
     ParseDerivatives
     ParseFunctionSig
-    ParseHeadersForNN
+--    ParseHeadersForNN
     RenderDeclarations
-    RenderNativeFunctions
-    RenderNN
+--    RenderNativeFunctions
+--    RenderNN
     RenderCommon
     RenderTensor
   hs-source-dirs: src
