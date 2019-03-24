@@ -34,13 +34,12 @@ library
                     , fficxx >= 0.5
                     , fficxx-runtime >= 0.5
                     , template-haskell
- extra-libraries:     stdc++
-                    , c10
-                    , THD
+ extra-libraries:     c10
                     , iomp5
                     , mklml
                     , caffe2
                     , torch
+                    , stdc++
  include-dirs:        csrc
  install-includes:    outputType.h
                     , AtenTensor.h
