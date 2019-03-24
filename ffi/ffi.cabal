@@ -34,12 +34,19 @@ library
                     , fficxx >= 0.5
                     , fficxx-runtime >= 0.5
                     , template-haskell
- extra-libraries: stdc++
- include-dirs:       csrc
+ extra-libraries:     stdc++
+                    , c10
+                    , THD
+                    , iomp5
+                    , mklml
+                    , caffe2
+                    , torch
+                    , stdc++
+ include-dirs:        csrc
  install-includes:    outputType.h
                     , AtenTensor.h
  c-sources:           csrc/AtenTensor.cpp
- ghc-options:         -optc-std=c++14 -optc-D_GLIBCXX_USE_CXX11_ABI=0
+ ghc-options:        -optc-std=c++14 -optc-D_GLIBCXX_USE_CXX11_ABI=0
 
 executable ffi-test
   hs-source-dirs:      example
@@ -51,10 +58,4 @@ executable ffi-test
                      , optparse-applicative >= 0.14.3.0
                      , containers
                      , ffi
-  extra-libraries:     stdc++
-                     , c10
-                     , iomp5
-                     , mklml
-                     , caffe2
-                     , torch
-  ghc-options:         -optc-std=c++14 -optc-D_GLIBCXX_USE_CXX11_ABI=0
+  ghc-options:        -optc-std=c++14 -optc-D_GLIBCXX_USE_CXX11_ABI=0
