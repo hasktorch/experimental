@@ -41,7 +41,6 @@ library
                     , mklml
                     , caffe2
                     , torch
-                    , stdc++
  include-dirs:        csrc
  install-includes:    outputType.h
                     , AtenTensor.h
