@@ -97,7 +97,7 @@ t_TensorList =
 t_TensorOptions =
   Class cabal "TensorOptions" [] mempty Nothing
   [ Constructor [(short_, "device")] Nothing
-  , NonVirtual (cppclassref_ t_TensorOptions) "dtype" [(char_, "device")] Nothing
+  , NonVirtual (cppclasscopy_ t_TensorOptions) "dtype" [(char_, "data_type")] Nothing
   ]
   []
   []
