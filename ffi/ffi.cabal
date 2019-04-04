@@ -31,6 +31,7 @@ Extra-source-files:    csrc/Mask.h
 library
  exposed-modules:     Aten.Type
                     , Aten.Const
+                    , Aten.Util
                     , Aten.NN
                     , Aten.TH
                     , Aten.Native
@@ -147,6 +148,7 @@ test-suite spec
                      , optparse-applicative >= 0.14.3.0
                      , containers
                      , ffi
+                     , fficxx-runtime >= 0.5
                      , hspec
   ghc-options:       -optc-D_GLIBCXX_USE_CXX11_ABI=0
   cc-options:        -D_GLIBCXX_USE_CXX11_ABI=0
