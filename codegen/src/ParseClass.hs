@@ -1,8 +1,9 @@
+
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module ParseTuples where
+module ParseClass where
 
 import Data.Char (toUpper)
 import GHC.Generics
@@ -15,11 +16,18 @@ import qualified Language.C.Inline.Cpp.Exceptions as C
 import Text.Show.Prettyprint (prettyPrint)
 import qualified ParseFunctionSig as S
 
-{- spec/tuples.yaml -}
-
-data Tuple = Tuple {
-  types :: [S.Parsable]
+data CppClass = CppClass
+  { signature :: String
+  , cppname :: String
+  , hsname :: String
+  , constructors :: [S.Function]
+  , methods :: [S.Function]
 } deriving (Show, Eq, Generic)
 
-instance FromJSON Tuple
+instance FromJSON CppClass
 
+
+decodeAndPrint :: String -> IO ()
+decodeAndPrint fileName = do
+  file <- Y.decodeFileEither fileName :: IO (Either ParseException CppClass)
+  prettyPrint file
