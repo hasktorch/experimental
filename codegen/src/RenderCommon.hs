@@ -85,25 +85,25 @@ parsableToCppType parsable =
 tenTypeToHsType :: TenType -> Text
 tenTypeToHsType tentype =
   case tentype of
-    Scalar -> "RawScalar"
-    Tensor -> "RawTensor"
-    TensorA -> "RawTensor"
-    TensorA' -> "RawTensor"
-    TensorAQ -> "RawTensor"
-    TensorAQ' -> "RawTensor"
-    TensorQ -> "RawTensor"
-    TensorAVector -> "RawTensorAVector"
-    TensorOptions -> "RawTensorOptions"
-    TensorList -> "RawTensorList"
-    IntegerTensor -> "RawTensor"
-    IndexTensor -> "RawTensor"
-    BoolTensor -> "RawTensor"
-    BoolTensorQ -> "RawTensor"
-    LongTensor -> "RawTensor"
-    IntList _ -> "RawIntArrayRef"
-    ScalarQ -> "RawScalar"
+    Scalar -> "Scalar"
+    Tensor -> "Tensor"
+    TensorA -> "Tensor"
+    TensorA' -> "Tensor"
+    TensorAQ -> "Tensor"
+    TensorAQ' -> "Tensor"
+    TensorQ -> "Tensor"
+    TensorAVector -> "TensorAVector"
+    TensorOptions -> "TensorOptions"
+    TensorList -> "TensorList"
+    IntegerTensor -> "Tensor"
+    IndexTensor -> "Tensor"
+    BoolTensor -> "Tensor"
+    BoolTensorQ -> "Tensor"
+    LongTensor -> "Tensor"
+    IntList _ -> "IntArrayRef"
+    ScalarQ -> "Scalar"
     ScalarType -> "ScalarType"
-    SparseTensorRef -> "RawSparseTensorRef"
+    SparseTensorRef -> "SparseTensorRef"
 
 stltypeToHsType :: STLType -> Text
 stltypeToHsType t =
@@ -129,7 +129,7 @@ parsableToHsType parsable =
     TenType t -> tenTypeToHsType t
     DeviceType -> "Device"
     GeneratorType -> "Generator"
-    StorageType -> "RawStorage"
+    StorageType -> "Storage"
     CType ct -> ctypeToHsType ct
     STLType t -> stltypeToHsType t
     CppString -> "StdString"
@@ -229,7 +229,7 @@ functionToCpp is_managed add_type_initials prefix suffix fn =
   if is_managed then [st|
 #{hsfuncname}#{type_initials}
   :: #{types}
-#{hsfuncname}#{type_initials} = xform#{num_args} Unmanaged.#{hsfuncname}#{type_initials}
+#{hsfuncname}#{type_initials} = cast#{num_args} Unmanaged.#{hsfuncname}#{type_initials}
 |]
   else [st|
 #{hsfuncname}#{type_initials}
@@ -292,18 +292,18 @@ functionToCpp is_managed add_type_initials prefix suffix fn =
         CType CVoid -> ""
         _ -> "return"
 
-methodToCpp :: PC.CppClass -> Bool -> Bool -> Bool -> String -> String -> Function -> Text
+methodToCpp :: PC.CppClassSpec -> Bool -> Bool -> Bool -> String -> String -> Function -> Text
 methodToCpp class' is_constructor is_managed add_type_initials prefix suffix fn =
   case (is_managed,is_constructor) of
     (True,True) -> [st|
-#{hsfuncname}#{PC.hsname class'}#{type_initials}
+new#{drop 3 (PC.hsname class')}#{hsfuncname}#{type_initials}
   :: #{types'}
-#{hsfuncname}#{PC.hsname class'}#{type_initials} = xform#{num_args'} Unmanaged.#{hsfuncname}#{PC.hsname class'}#{type_initials}
+new#{drop 3 (PC.hsname class')}#{hsfuncname}#{type_initials} = cast#{num_args'} Unmanaged.#{hsfuncname}#{PC.hsname class'}#{type_initials}
 |]
     (True,False) -> [st|
 #{renameFunc (PC.hsname class')}_#{hsfuncname}#{type_initials}
   :: #{types}
-#{renameFunc (PC.hsname class')}_#{hsfuncname}#{type_initials} = xform#{num_args} Unmanaged.#{renameFunc (PC.hsname class')}_#{hsfuncname}
+#{renameFunc (PC.hsname class')}_#{hsfuncname}#{type_initials} = cast#{num_args} Unmanaged.#{renameFunc (PC.hsname class')}_#{hsfuncname}
 |]
     (False,True) -> [st|
 #{hsfuncname}#{PC.hsname class'}#{type_initials}

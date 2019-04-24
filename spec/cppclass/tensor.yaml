@@ -3,7 +3,7 @@ cppname: Tensor
 hsname: Tensor
 constructors:
 - new() -> Tensor
-- new(Tensor x) -> Tensor
+- new_Tensor(Tensor x) -> Tensor
 methods:
 - dim() -> int64_t
 - storage_offset() -> int64_t

@@ -16,7 +16,7 @@ import qualified Language.C.Inline.Cpp.Exceptions as C
 import Text.Show.Prettyprint (prettyPrint)
 import qualified ParseFunctionSig as S
 
-data CppClass = CppClass
+data CppClassSpec = CppClassSpec
   { signature :: String
   , cppname :: String
   , hsname :: String
@@ -24,10 +24,10 @@ data CppClass = CppClass
   , methods :: [S.Function]
 } deriving (Show, Eq, Generic)
 
-instance FromJSON CppClass
+instance FromJSON CppClassSpec
 
 
 decodeAndPrint :: String -> IO ()
 decodeAndPrint fileName = do
-  file <- Y.decodeFileEither fileName :: IO (Either ParseException CppClass)
+  file <- Y.decodeFileEither fileName :: IO (Either ParseException CppClassSpec)
   prettyPrint file

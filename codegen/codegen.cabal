@@ -20,7 +20,6 @@ library
     ParseClass
     RenderDeclarations
     RenderCommon
-    RenderTensor
     RenderTuples
     RenderClass
   hs-source-dirs: src
