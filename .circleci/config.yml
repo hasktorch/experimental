@@ -47,6 +47,7 @@ jobs:
       - run: cd libtorch-test ; make
       - run: ./setup-cabal.sh
       - run: cabal new-update
+      - run: cabal new-install hspec-discover
       - run:
           name: cabal new-build all
           command: cabal new-build all --jobs=2
