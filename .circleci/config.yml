@@ -52,10 +52,10 @@ jobs:
           name: cabal new-build all
           command: cabal new-build all --jobs=2
           no_output_timeout: 15m
-      - run: cabal new-test all --jobs=2
+      - run: cabal new-test ffi --jobs=2
       - run: cabal new-exec ffi-test
       - run: cabal new-exec codegen-exe
-      - run: cabal new-test all --jobs=2
+      - run: cabal new-test ffi --jobs=2
       - run: cabal new-exec ffi-test
 
 workflows:
