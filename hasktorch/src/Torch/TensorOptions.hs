@@ -26,14 +26,5 @@ instance Castable TensorOptions ATenTensorOptions where
 defaultOpts :: TensorOptions
 defaultOpts = TensorOptions $ unsafePerformIO $ ATen.newTensorOptions_s ATen.kFloat
 
-withGrad :: Bool -> TensorOptions -> TensorOptions
-withGrad does_it opts = unsafePerformIO $ (cast2 ATen.tensorOptions_requires_grad_b) opts does_it
-
-withRequiresGrad :: TensorOptions -> TensorOptions
-withRequiresGrad = withGrad True
-
-withNoGrad :: TensorOptions -> TensorOptions
-withNoGrad = withGrad False
-
 withDType :: DType -> TensorOptions -> TensorOptions
 withDType dtype opts = unsafePerformIO $ (cast2 ATen.tensorOptions_dtype_s) opts dtype

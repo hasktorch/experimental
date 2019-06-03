@@ -24,12 +24,14 @@ instance Castable [Tensor] (ForeignPtr ATen.TensorList) where
     tensor_list <- mapM (\(x :: ForeignPtr ATen.Tensor) -> uncast x return) ptr_list
     f tensor_list
 
-grad :: Tensor -> [Tensor] -> [Tensor]
-grad y inputs = unsafePerformIO $ (cast2 Torch.Managed.Autograd.grad) y inputs
+newtype IndependentTensor = IndependentTensor { toDependent :: Tensor }
+    deriving (Show)
+
+grad :: Tensor -> [IndependentTensor] -> [Tensor]
+grad y inputs = unsafePerformIO $ (cast2 Torch.Managed.Autograd.grad) y (map toDependent inputs)
 
 requiresGrad :: Tensor -> Bool
 requiresGrad t = unsafePerformIO $ (cast1 ATen.tensor_requires_grad) t
 
-independent :: Tensor -> Tensor
-independent t | not (requiresGrad t) = t
-              | otherwise = unsafePerformIO $ (cast1 Torch.Managed.Autograd.makeIndependent) t
+makeIndependent :: Tensor -> IO IndependentTensor
+makeIndependent t = (cast1 Torch.Managed.Autograd.makeIndependent) t >>= return . IndependentTensor

@@ -13,9 +13,10 @@ import Torch.Autograd
 import Control.Monad.State.Strict
 import Data.List (foldl', scanl', intersperse)
 
-type ParamStream a = State [Tensor] a
+type Parameter = IndependentTensor
+type ParamStream a = State [Parameter] a
 
-nextParameter :: ParamStream Tensor
+nextParameter :: ParamStream Parameter
 nextParameter = do
   params <- get
   case params of
@@ -23,12 +24,12 @@ nextParameter = do
     (p : t) -> do put t; return p
 
 class Parametrized f where
-  flattenParameters :: f -> [Tensor]
+  flattenParameters :: f -> [Parameter]
   replaceOwnParameters :: f -> ParamStream f
 
-replaceParameters :: Parametrized f => f -> [Tensor] -> f
+replaceParameters :: Parametrized f => f -> [Parameter] -> f
 replaceParameters f params =
-  let (f', remaining) = runState (replaceOwnParameters f) (map independent params) in
+  let (f', remaining) = runState (replaceOwnParameters f) params in
   if null remaining
     then f'
     else error "Some parameters in a call to replaceParameters haven't been consumed!"
@@ -45,16 +46,14 @@ class (Randomizable spec f, Parametrized f) => Module spec f
 data LinearSpec = LinearSpec { in_features :: Int, out_features :: Int }
   deriving (Show, Eq)
 
-data Linear = Linear { weight :: Tensor, bias :: Tensor }
+data Linear = Linear { weight :: Parameter, bias :: Parameter }
   deriving (Show)
 
 instance Randomizable LinearSpec Linear where
   sample LinearSpec{..} = do
-      w <- randn [in_features, out_features] opts
-      b <- randn [out_features] opts
+      w <- makeIndependent =<< randn' [in_features, out_features]
+      b <- makeIndependent =<< randn' [out_features]
       return $ Linear w b
-    where
-      opts = withRequiresGrad defaultOpts
 
 instance Parametrized Linear where
   flattenParameters Linear{..} = [weight, bias]
@@ -65,7 +64,7 @@ instance Parametrized Linear where
 
 
 linear :: Linear -> Tensor -> Tensor
-linear Linear{..} input = (matmul input weight) + bias
+linear Linear{..} input = (matmul input (toDependent weight)) + (toDependent bias)
 
 --------------------------------------------------------------------------------
 -- MLP
@@ -106,8 +105,8 @@ num_iters = 10000
 model :: MLP -> Tensor -> Tensor
 model params t = sigmoid (mlp params t)
 
-sgd :: Tensor -> [Tensor] -> [Tensor] -> [Tensor]
-sgd lr parameters gradients = zipWith (\p dp -> p - (lr * dp)) parameters gradients
+sgd :: Tensor -> [Parameter] -> [Tensor] -> [Tensor]
+sgd lr parameters gradients = zipWith (\p dp -> p - (lr * dp)) (map toDependent parameters) gradients
 
 main :: IO ()
 main = do
@@ -126,7 +125,8 @@ main = do
           then do putStrLn $ show loss
           else return ()
 
-        return $ replaceParameters state $ sgd 1e-2 flat_parameters gradients
+        new_flat_parameters <- mapM makeIndependent $ sgd 5e-4 flat_parameters gradients
+        return $ replaceParameters state $ new_flat_parameters
     return ()
   where
     foldLoop x count block = foldM block x [1..count]
