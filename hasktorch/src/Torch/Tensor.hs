@@ -41,9 +41,6 @@ debugPrint = cast1 ATen.tensor_print
 numel :: Tensor -> Int
 numel t = unsafePerformIO $ cast1 ATen.tensor_numel $ t
 
-select :: Tensor -> Int -> Int -> Tensor
-select t dim idx = unsafePerformIO $ (cast3 ATen.tensor_select_ll) t dim idx
-
 size :: Tensor -> Int -> Int
 size t dim = unsafePerformIO $ (cast2 ATen.tensor_size_l) t dim
 
@@ -53,13 +50,20 @@ shape t = unsafePerformIO $ (cast1 ATen.tensor_sizes) t
 dim :: Tensor -> Int
 dim t = unsafePerformIO $ (cast1 ATen.tensor_dim) t
 
+dtype :: Tensor -> DType
+dtype t = unsafePerformIO $ (cast1 ATen.tensor_scalar_type) t
+
 asDouble :: Tensor -> Double
 asDouble t = unsafePerformIO $ cast1 ATen.tensor_item_double $ t
 
 asInt :: Tensor -> Int
 asInt t = unsafePerformIO $ cast1 ATen.tensor_item_int64_t $ t
 
+select :: Tensor -> Int -> Int -> Tensor
+select t dim idx = unsafePerformIO $ (cast3 ATen.tensor_select_ll) t dim idx
 
+reshape :: Tensor -> [Int] -> Tensor
+reshape t shape = unsafePerformIO $ (cast2 ATen.reshape_tl) t shape
 
 class TensorIndex a where
   (@@) :: Tensor -> a -> Tensor
