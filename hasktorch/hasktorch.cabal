@@ -20,6 +20,7 @@ library
                     , Torch.Functions
                     , Torch.Autograd
                     , Torch.NN
+                    , Torch.Scalar
  hs-source-dirs:      src
  default-language:    Haskell2010
  build-depends:       base >= 4.7 && < 5
